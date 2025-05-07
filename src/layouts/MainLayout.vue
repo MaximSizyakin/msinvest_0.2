@@ -1,5 +1,5 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
+  <q-layout view="hHh Lpr lff" class="shadow-2 rounded-borders">
     <q-header elevated>
       <q-toolbar>
         <q-btn
@@ -8,7 +8,7 @@
           round
           icon="menu"
           aria-label="Menu"
-          @click="toggleLeftDrawer"
+          @click="drawer = !drawer"
         />
 
         <q-toolbar-title>
@@ -20,10 +20,16 @@
     </q-header>
 
     <q-drawer
-      v-model="leftDrawerOpen"
+      v-model="drawer"
       show-if-above
+      :mini="miniState"
+      @mouseenter="miniState = false"
+      @mouseleave="miniState = true"
+      :width="200"
+      :breakpoint="500"
       bordered
     >
+
       <side-menu></side-menu>
     </q-drawer>
 
@@ -37,9 +43,6 @@
 import SideMenu from 'components/SideMenu.vue';
 import {ref} from 'vue';
 
-const leftDrawerOpen = ref(false);
-
-function toggleLeftDrawer() {
-  leftDrawerOpen.value = !leftDrawerOpen.value;
-}
+const drawer = ref(true);
+const miniState = ref(true);
 </script>

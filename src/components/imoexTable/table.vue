@@ -5,12 +5,10 @@
     :columns="columns"
     row-key="name"
     dense
-    :pagination="pagination"
-    rows-per-page-label="Записей на странице"
-    :rows-per-page-options="[10, 20, 50, 100]"
-    :pagination-label="(s, e, t) => (s + '-' + e + ' из ' + t)"
     no-data-label="Нет данных. Попробуйте позже."
     :loading="loading"
+    :rows-per-page-options="[0]"
+    hide-pagination
     loading-label="Загрузка данных."
     separator="cell"
   >
@@ -56,7 +54,7 @@
 
 <script setup>
 import columns from "./columns";
-import {computed, onMounted} from "vue";
+import {computed} from "vue";
 
 const props = defineProps({
   rows: {
@@ -68,23 +66,13 @@ const props = defineProps({
     default: false
   }
 });
-
-const pagination = {
-  sortBy: 'ticker',
-  descending: false,
-  page: 1,
-  rowsPerPage: 10
-};
+console.log(props.rows);
 
 const totalWeight = computed(() => {
   let data = null;
   props.rows.forEach(i => data += i.weight);
   return Math.round(data);
 });
-
-onMounted(() => {
-});
-
 </script>
 
 <style scoped>

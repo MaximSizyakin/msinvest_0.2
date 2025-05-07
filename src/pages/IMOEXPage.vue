@@ -9,10 +9,13 @@
   </div>
 </template>
 
+<!--Страница должна только получать данные и передавать в таблицу.-->
+<!--А таблица уже должна на основе этих данных расчитывать и выводить информацию.-->
+
 <script setup>
 import axios from "axios";
 import {ref, onMounted, reactive} from "vue";
-import Table from '../components/imoex/table.vue';
+import Table from '../components/imoexTable/table.vue';
 
 const loading = ref(false);
 
