@@ -2,7 +2,7 @@
   <div class="q-pa-md">
 
     <Table
-      :rows="rows"
+      :rows="rowsData"
       :loading="loading"
     />
 
@@ -19,14 +19,14 @@ import Table from '../components/imoexTable/table.vue';
 
 const loading = ref(false);
 
+// Получаем индекс (тикер и вес э)
 const imoexIndex = reactive([]);
 const getImoexIndex = async () => {
   try {
     await axios.get('https://iss.moex.com/iss/statistics/engines/stock/markets/index/analytics/IMOEX.json?limit=100')
       .then(response => {
         const data = response.data.analytics.data;
-        data.forEach((el, idx) => imoexIndex.push({
-          index: idx,
+        data.forEach((el) => imoexIndex.push({
           ticker: el[2],
           weight: el[5]
         }));
@@ -36,13 +36,15 @@ const getImoexIndex = async () => {
   }
 };
 
-const sharesData = reactive([]);
-const getSharesValue = async () => {
+// Получаем данные эмитента (тикер, название и стоимость)
+const emitentsData = reactive([]);
+const getSharesData = async () => {
   try {
     await axios.get('https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json')
       .then(response => {
+        // Тут пока дата закрытия. Можно переделать на текущую.
         const data = response.data.securities.data;
-        data.forEach((el, idx) => sharesData.push(
+        data.forEach((el, idx) => emitentsData.push(
           {
             ticker: el[0],
             name: el[9],
@@ -55,16 +57,17 @@ const getSharesValue = async () => {
   }
 };
 
-const rows = reactive([]);
-const uploadRowsData = () => {
+// Передавать весь массив или каждый пропс отдельно?
+const rowsData = reactive([]);
+const writeRowsData = () => {
   return imoexIndex.map((el, idx, arr) => {
-    const share = sharesData.find(item => item.ticker === el.ticker);
-    rows.push({
+    const emitent = emitentsData.find(item => item.ticker === el.ticker);
+    rowsData.push({
       index: idx,
       ticker: el.ticker,
       weight: el.weight,
-      name: share.name,
-      value: share.value
+      name: emitent.name,
+      value: emitent.value
     });
   });
 };
@@ -72,8 +75,8 @@ const uploadRowsData = () => {
 onMounted(async () => {
     loading.value = true;
     await getImoexIndex();
-    await getSharesValue();
-    uploadRowsData();
+    await getSharesData();
+    writeRowsData();
     loading.value = false;
   }
 );
