@@ -10,13 +10,13 @@ const columns = [
   {name: 'name', align: 'left', label: 'Название', field: 'name'}, // yes
   {name: 'weight', label: 'Вес', field: 'weight', sortable: true}, // yes
   {name: 'coef', align: 'center', label: 'Коэф-нт', field: 'coef'}, // подумать
-  {name: 'value', align: 'center', label: 'Цена', field: 'value'}, // должна обновляться, какой интервал?
+  {name: 'value', label: 'Цена', field: 'value'}, // должна обновляться, какой интервал?
   {name: 'planQuantity', label: 'Купить акций план', field: 'planQuantity'}, // computed
-  {name: 'planPrice', align: 'center', label: 'Стоимость плановая', field: 'planPrice'}, // computed
+  {name: 'planPrice', label: 'Стоимость плановая', field: 'planPrice'}, // computed
   {name: 'myWeight', align: 'center', label: 'Мой вес', field: 'myWeight'},
   {name: 'weightQuantity', align: 'center', label: 'Купить акций вес', field: 'weightQuantity'},
-  {name: 'weightPrice', align: 'center', label: 'Стоимость весовая', field: 'weightPrice'},
-  {name: 'boughtQuantity', align: 'center', label: 'Куплено акций', field: 'boughtQuantity'}, // ручной ввод
+  {name: 'weightPrice', label: 'Стоимость весовая', field: 'weightPrice'},
+  {name: 'boughtQuantity', label: 'Куплено акций', field: 'boughtQuantity'}, // ручной ввод
   {name: 'boughtPrice', align: 'center', label: 'Стоимость позиции', field: 'boughtPrice'}, // computed
   {name: 'done', align: 'center', label: 'Готовность', field: 'done'},
   {name: 'buy', align: 'center', label: 'Докупить', field: 'buy'},
