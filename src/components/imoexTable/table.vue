@@ -55,7 +55,7 @@
         <q-td key="name" :props="props">{{ props.row.name }}</q-td>
         <q-td key="weight" :props="props">{{ props.row.weight }}</q-td>
         <q-td key="coef" :props="props">
-          <!--          {{ tableData[props.row.index].coef }}-->
+          {{ tableData[props.row.index].coef }}
         </q-td>
         <!--          <q-popup-edit v-model="props.row.coef" v-slot="scope">-->
         <!--            <q-input v-model="scope.value" dense autofocus counter @keyup.enter="console.log(props.row)"/>-->
@@ -63,10 +63,10 @@
 
         <q-td key="value" :props="props">{{ props.row.value.toFixed(2) }}</q-td>
         <q-td key="planQuantity" :props="props">
-          <!--          {{ getPlanQuantity(props.row) }}-->
+          {{ getPlanQuantity(props.row) }}
         </q-td>
         <q-td key="planPrice" :props="props">
-          <!--          {{ getPlanPrice(props.row) }}-->
+          {{ getPlanPrice(props.row) }}
         </q-td>
         <q-td key="myWeight" :props="props"></q-td>
         <q-td key="weightQuantity" :props="props"></q-td>
@@ -113,10 +113,8 @@
 
 <script setup>
 import columns from "./columns";
-import {computed, onMounted, reactive, ref, watch} from "vue";
-import {useIMOEXStore} from "../../stores/imoex-store.js";
-
-const IMOEXStore = useIMOEXStore();
+import {computed, reactive, ref, watch} from "vue";
+// import {getPlanQuantity} from "./functions.js";
 
 const {rows, loading} = defineProps({
   rows: {
@@ -138,37 +136,35 @@ const totalWeight = computed(() => {
   return Math.round(data);
 });
 
-// let tableData = ref([]);
-
-onMounted(() => {
-  console.log(IMOEXStore);
-});
+// Локальные данные, чтобы не мутировать данные из props
+let tableData = reactive([]);
 
 watch(
   () => rows,
   () => {
-    IMOEXStore.loadInitialData(rows);
-    // здесь нужно заносить коэффинты и другие данные с сервера?
-    console.log('here');
-    IMOEXStore.loadData('coef', 1);
-    IMOEXStore.loadData('boughtQuantity', 7);
+    JSON.parse(JSON.stringify(rows)).forEach(i => tableData.push(i)); // ресурснозатратно, но по другому не работает?
+    // // здесь нужно заносить коэффинты и другие данные с БД?
+    tableData.forEach(i => {
+      i.coef = 1.25;
+      i.boughtQuantity = 7;
+    });
   },
   {deep: true}
 );
 
-// const getPlanQuantity = (row) => {
-//   const el = tableData.find(i => i.ticker === row.ticker);
-//   const qtty = Math.round(target.value * row.weight / 100 * 1 / row.value);
-//   el.planQuantity = qtty;
-//   return qtty;
-// };
-//
-// const getPlanPrice = (row) => {
-//   const el = tableData.find(i => i.ticker === row.ticker);
-//   const price = Math.round(row.value * el.planQuantity);
-//   el.planPrice = price;
-//   return price;
-// };
+const getPlanQuantity = (row) => {
+  const el = tableData.find(i => i.ticker === row.ticker);
+  const qtty = Math.round(target.value * row.weight / 100 * el.coef / row.value);
+  el.planQuantity = qtty;
+  return qtty;
+};
+
+const getPlanPrice = (row) => {
+  const el = tableData.find(i => i.ticker === row.ticker);
+  const price = Math.round(row.value * el.planQuantity);
+  el.planPrice = price;
+  return price;
+};
 
 // const totalPlanPrice = computed(() => {
 //   let data = null;
