@@ -113,7 +113,10 @@
 
 <script setup>
 import columns from "./columns";
-import {computed, reactive, ref, watch} from "vue";
+import {computed, onMounted, reactive, ref, watch} from "vue";
+import {useIMOEXStore} from "../../stores/imoex-store.js";
+
+const IMOEXStore = useIMOEXStore();
 
 const {rows, loading} = defineProps({
   rows: {
@@ -135,22 +138,22 @@ const totalWeight = computed(() => {
   return Math.round(data);
 });
 
-let tableData = reactive([]);
+// let tableData = ref([]);
 
-// сделать кнопку и проверить реактивность tableData
+onMounted(() => {
+  console.log(IMOEXStore);
+});
+
 watch(
   () => rows,
   () => {
-    console.log(rows);
-    tableData = rows.map(el => el);
-    console.log(rows);
+    IMOEXStore.loadInitialData(rows);
     // здесь нужно заносить коэффинты и другие данные с сервера?
-    tableData.forEach(i => {
-      i.coef = 1;
-      i.boughtQuantity = 7;
-    });
+    console.log('here');
+    IMOEXStore.loadData('coef', 1);
+    IMOEXStore.loadData('boughtQuantity', 7);
   },
-  {deep: true},
+  {deep: true}
 );
 
 // const getPlanQuantity = (row) => {
