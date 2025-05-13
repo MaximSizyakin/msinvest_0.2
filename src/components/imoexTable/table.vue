@@ -63,10 +63,10 @@
 
         <q-td key="value" :props="props">{{ props.row.value.toFixed(2) }}</q-td>
         <q-td key="planQuantity" :props="props">
-          {{ getPlanQuantity(props.row) }}
+          {{ getPlanQuantity(props.row).toLocaleString() }}
         </q-td>
         <q-td key="planPrice" :props="props">
-          {{ getPlanPrice(props.row) }}
+          {{ getPlanPrice(props.row).toLocaleString() }}
         </q-td>
         <q-td key="myWeight" :props="props"></q-td>
         <q-td key="weightQuantity" :props="props"></q-td>
@@ -114,7 +114,7 @@
 <script setup>
 import columns from "./columns";
 import {computed, reactive, ref, watch} from "vue";
-// import {getPlanQuantity} from "./functions.js";
+import {supabase} from "../../boot/supabase.js";
 
 const {rows, loading} = defineProps({
   rows: {
@@ -143,14 +143,22 @@ watch(
   () => rows,
   () => {
     JSON.parse(JSON.stringify(rows)).forEach(i => tableData.push(i)); // ресурснозатратно, но по другому не работает?
-    // // здесь нужно заносить коэффинты и другие данные с БД?
     tableData.forEach(i => {
-      i.coef = 1.25;
-      i.boughtQuantity = 7;
+      i.coef = i.coef ? i.coef : 1;
+      i.boughtQuantity = i.boughtQuantity ? i.boughtQuantity : 1;
     });
+    // Здесь нужно заносить коэффинты и другие данные с БД?
+    //
+    //
+    //
+    //
+    /
+
   },
   {deep: true}
 );
+
+
 
 const getPlanQuantity = (row) => {
   const el = tableData.find(i => i.ticker === row.ticker);
