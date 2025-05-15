@@ -1,6 +1,5 @@
 <template>
   <div class="q-pa-md">
-
     <Table
       :rows="rowsData"
       :loading="loading"
@@ -16,10 +15,13 @@
 import axios from "axios";
 import {ref, onMounted, reactive} from "vue";
 import Table from '../components/imoexTable/table.vue';
+import {useIMOEXStore} from "../stores/imoex-store.js";
+
+const store = useIMOEXStore();
 
 const loading = ref(false);
 
-// Получаем индекс (тикер и вес э)
+// Получаем индекс (тикер и вес эмитента)
 const imoexIndex = reactive([]);
 const getImoexIndex = async () => {
   try {
@@ -57,7 +59,7 @@ const getSharesData = async () => {
   }
 };
 
-// Передавать весь массив или каждый пропс отдельно?
+// Определаем структуру props для передачи в конмонент таблицы
 const rowsData = reactive([]);
 const writeRowsData = () => {
   return imoexIndex.map((el, idx, arr) => {
@@ -77,6 +79,7 @@ onMounted(async () => {
     await getImoexIndex();
     await getSharesData();
     writeRowsData();
+    store.loadLocalData(rowsData);
     loading.value = false;
   }
 );

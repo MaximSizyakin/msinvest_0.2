@@ -2,7 +2,7 @@
   <div class="q-pa-md">
     <q-input
       filled
-      v-model.number="target"
+      v-model.number="store.target"
       prefix="₽"
       :rules="[val => !!val || 'Не может быть пустым']"
       style="max-width: 200px"
@@ -10,11 +10,10 @@
     <!--      mask="### ### ### ###"-->
     <!--      reverse-fill-mask-->
     <!--      debounce="1000"-->
-
     <q-input
       filled
       disable
-      v-model="current"
+      v-model="store.current"
       prefix="₽"
       mask="### ### ### ###"
       reverse-fill-mask
@@ -55,7 +54,7 @@
         <q-td key="name" :props="props">{{ props.row.name }}</q-td>
         <q-td key="weight" :props="props">{{ props.row.weight }}</q-td>
         <q-td key="coef" :props="props">
-          {{ tableData[props.row.index].coef }}
+          <!--          {{ tableData[props.row.index].coef }}-->
         </q-td>
         <!--          <q-popup-edit v-model="props.row.coef" v-slot="scope">-->
         <!--            <q-input v-model="scope.value" dense autofocus counter @keyup.enter="console.log(props.row)"/>-->
@@ -63,10 +62,11 @@
 
         <q-td key="value" :props="props">{{ props.row.value.toFixed(2) }}</q-td>
         <q-td key="planQuantity" :props="props">
-          {{ getPlanQuantity(props.row).toLocaleString() }}
+          {{ store.getPlanQuantity(props.row.ticker) }}
+          <!--          {{ getPlanQuantity(props.row).toLocaleString() }}-->
         </q-td>
         <q-td key="planPrice" :props="props">
-          {{ getPlanPrice(props.row).toLocaleString() }}
+          <!--          {{ getPlanPrice(props.row).toLocaleString() }}-->
         </q-td>
         <q-td key="myWeight" :props="props"></q-td>
         <q-td key="weightQuantity" :props="props"></q-td>
@@ -87,7 +87,9 @@
         <q-td>1</q-td>
         <q-td>2</q-td>
         <q-td>3</q-td>
-        <q-td>{{ totalWeight }}</q-td>
+        <q-td>
+<!--          {{ totalWeight }}-->
+        </q-td>
         <q-td>5</q-td>
         <q-td>6</q-td>
         <q-td>7</q-td>
@@ -108,14 +110,15 @@
 
   </q-table>
 </template>
-
-<!--Таблица получает данные из страницы и делает свои расчеты внутри-->
-
 <script setup>
 import columns from "./columns";
-import {computed, reactive, ref, watch} from "vue";
+import {computed, onMounted, reactive, ref, watch} from "vue";
+import {useIMOEXStore} from "../../stores/imoex-store.js";
 import {supabase} from "../../boot/supabase.js";
 
+const store = useIMOEXStore();
+
+// Определение входных параметров компонента таблицы
 const {rows, loading} = defineProps({
   rows: {
     type: Array,
@@ -127,52 +130,57 @@ const {rows, loading} = defineProps({
   }
 });
 
-const target = ref(1400000);
-const current = ref(0);
+// Загрузка входных параметров компонента таблицы в хранилище
+// watch(
+//   () => rows,
+//   () => {
+//     store.loadLocalData(rows);
+//   },
+//   {deep: true}
+// );
 
-const totalWeight = computed(() => {
-  let data = null;
-  rows.forEach(i => data += i.weight);
-  return Math.round(data);
+// Загрузка данных из базы данных в хранилище
+onMounted(() => {
+  store.fetchIMOEXDatabase();
 });
 
-// Локальные данные, чтобы не мутировать данные из props
-let tableData = reactive([]);
+// const planQuantity = computed(() => (ticker) => {
+//   const idx = store.localData.find(i => i.ticker === ticker).index;
+//   if (store.databaseData.length > 0 && store.databaseData[idx]?.coef) {
+//     return Math.round(target.value * store.localData[idx].weight / 100 * store.databaseData[idx].coef / store.localData[idx].value);
+//   } else {
+//     return 0;
+//   }
+// });
 
-watch(
-  () => rows,
-  () => {
-    JSON.parse(JSON.stringify(rows)).forEach(i => tableData.push(i)); // ресурснозатратно, но по другому не работает?
-    tableData.forEach(i => {
-      i.coef = i.coef ? i.coef : 1;
-      i.boughtQuantity = i.boughtQuantity ? i.boughtQuantity : 1;
-    });
-    // Здесь нужно заносить коэффинты и другие данные с БД?
-    //
-    //
-    //
-    //
-    /
+// const planQuantity = (ticker) => {
+//   const idx = store.localData.find(i => i.ticker === ticker).index;
+//   if (store.databaseData.length > 0 && store.databaseData[idx]?.coef) {
+//     return Math.round(target.value * store.localData[idx].weight / 100 * store.databaseData[idx].coef / store.localData[idx].value);
+//   } else {
+//     return 0;
+//   }
+// };
 
-  },
-  {deep: true}
-);
+// const getPlanQuantity = (row) => {
+//   const el = tableData.find(i => i.ticker === row.ticker);
+//   const qtty = Math.round(target.value * row.weight / 100 * el.coef / row.value);
+//   el.planQuantity = qtty;
+//   return qtty;
+// };
+//
+// const getPlanPrice = (row) => {
+//   const el = tableData.find(i => i.ticker === row.ticker);
+//   const price = Math.round(row.value * el.planQuantity);
+//   el.planPrice = price;
+//   return price;
+// };
 
-
-
-const getPlanQuantity = (row) => {
-  const el = tableData.find(i => i.ticker === row.ticker);
-  const qtty = Math.round(target.value * row.weight / 100 * el.coef / row.value);
-  el.planQuantity = qtty;
-  return qtty;
-};
-
-const getPlanPrice = (row) => {
-  const el = tableData.find(i => i.ticker === row.ticker);
-  const price = Math.round(row.value * el.planQuantity);
-  el.planPrice = price;
-  return price;
-};
+// const totalWeight = computed(() => {
+//   let data = null;
+//   rows.forEach(i => data += i.weight);
+//   return Math.round(data);
+// });
 
 // const totalPlanPrice = computed(() => {
 //   let data = null;
