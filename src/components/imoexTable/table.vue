@@ -23,7 +23,7 @@
 
   <q-table
     title="Таблица соответствия индекса Мосбиржи"
-    :rows="rows"
+    :rows="store.data"
     :columns="columns"
     row-key="ticker"
     dense
@@ -53,16 +53,13 @@
         <q-td key="ticker" :props="props">{{ props.row.ticker }}</q-td>
         <q-td key="name" :props="props">{{ props.row.name }}</q-td>
         <q-td key="weight" :props="props">{{ props.row.weight }}</q-td>
-        <q-td key="coef" :props="props">
-          <!--          {{ tableData[props.row.index].coef }}-->
-        </q-td>
+        <q-td key="coef" :props="props">{{ props.row.coef?.toFixed(2) }}</q-td>
         <!--          <q-popup-edit v-model="props.row.coef" v-slot="scope">-->
         <!--            <q-input v-model="scope.value" dense autofocus counter @keyup.enter="console.log(props.row)"/>-->
         <!--          </q-popup-edit>-->
-
         <q-td key="value" :props="props">{{ props.row.value.toFixed(2) }}</q-td>
         <q-td key="planQuantity" :props="props">
-          {{ store.getPlanQuantity(props.row.ticker) }}
+          <!--          {{ store.getPlanQuantity(props.row.ticker) }}-->
           <!--          {{ getPlanQuantity(props.row).toLocaleString() }}-->
         </q-td>
         <q-td key="planPrice" :props="props">
@@ -88,7 +85,7 @@
         <q-td>2</q-td>
         <q-td>3</q-td>
         <q-td>
-<!--          {{ totalWeight }}-->
+          <!--          {{ totalWeight }}-->
         </q-td>
         <q-td>5</q-td>
         <q-td>6</q-td>
@@ -118,17 +115,14 @@ import {supabase} from "../../boot/supabase.js";
 
 const store = useIMOEXStore();
 
-// Определение входных параметров компонента таблицы
-const {rows, loading} = defineProps({
-  rows: {
-    type: Array,
-    required: true
-  },
+const {loading} = defineProps({
   loading: {
     type: Boolean,
     default: false
   }
 });
+
+// const tableData = reactive([]);
 
 // Загрузка входных параметров компонента таблицы в хранилище
 // watch(
@@ -140,9 +134,9 @@ const {rows, loading} = defineProps({
 // );
 
 // Загрузка данных из базы данных в хранилище
-onMounted(() => {
-  store.fetchIMOEXDatabase();
-});
+// onMounted(() => {
+//   store.fetchIMOEXDatabase();
+// });
 
 // const planQuantity = computed(() => (ticker) => {
 //   const idx = store.localData.find(i => i.ticker === ticker).index;

@@ -3,22 +3,15 @@ import {supabase} from "../boot/supabase.js";
 
 export const useIMOEXStore = defineStore('IMOEX', {
   state: () => ({
-    localData: [
+    data: [
       // {
       //   "index": 0,
       //   "ticker": "AFKS",
       //   "weight": 0.46,
       //   "name": "АФК \"Система\" ПАО ао",
       //   "value": 14.828
-      // }
-    ],
-    databaseData: [
-      // {
-      //   "id":0,
-      //   "created_at":"2025-05-13T11:27:32.934169+00:00",
-      //   "ticker":"AFKS",
       //   "coef":1.25,
-      //   "boughtQuantity":7
+      //    "boughtQuantity":7
       // }
     ],
     target: 1400000,
@@ -26,39 +19,47 @@ export const useIMOEXStore = defineStore('IMOEX', {
   }),
 
   getters: {
-    getPlanQuantity: (state) => (ticker) => {
-      const idx = state.localData.find(i => i.ticker === ticker).index;
-      if (state.databaseData.length > 0 && state.databaseData[idx]?.coef) {
-        return Math.round(state.target * state.localData[idx].weight / 100 * state.databaseData[idx].coef / state.localData[idx].value);
-      } else {
-        return 0;
-      }
-    }
+    // getPlanQuantity: (state) => (ticker) => {
+    //   const idx = state.localData.find(i => i.ticker === ticker).index;
+    //   if (state.databaseData.length > 0 && state.databaseData[idx]?.coef) {
+    //     return Math.round(state.target * state.localData[idx].weight / 100 * state.databaseData[idx].coef / state.localData[idx].value);
+    //   } else {
+    //     return 0;
+    //   }
+    // }
   },
 
   actions: {
-    // Разрываем реактивность между props и store
-    loadLocalData(array) {
+    setInitialData(array) {
       try {
-        this.localData = JSON.parse(JSON.stringify(array));
-        console.log('rows loaded');
+        // Разрываем реактивность
+        this.data = JSON.parse(JSON.stringify(array));
       } catch (error) {
         console.log('Ошибка при загрузке данных биржы', error.message);
       }
     },
-    addLocalData(data) {
-      // если добавлять данные из БД сразу в основной массив
-      // что будет с реактивностью props?
-    },
+
     async fetchIMOEXDatabase() {
       try {
         let {data, error} = await supabase.from('IMOEXTable').select('*');
-        this.databaseData = data;
-        console.log('supabase loaded');
+        this.updateData(data);
         if (error) throw error;
       } catch (error) {
         console.log('Ошибка при загрузке данных из базы данных IMOEX', error.message);
       }
+    },
+
+    updateData(dbData) {
+      this.data.forEach((item, index) => {
+        const el = dbData.find((el => el.ticker === item.ticker));
+        if (el) {
+          this.data[index].coef = el.coef;
+          this.data[index].boughtQuantity = el.boughtQuantity;
+        } else {
+          this.data[index].coef = 1;
+          this.data[index].boughtQuantity = 1;
+        }
+      });
     }
   }
 });

@@ -1,7 +1,7 @@
 <template>
   <div class="q-pa-md">
+    <!--      :rows="IMOEXData"-->
     <Table
-      :rows="rowsData"
       :loading="loading"
     />
 
@@ -22,13 +22,13 @@ const store = useIMOEXStore();
 const loading = ref(false);
 
 // Получаем индекс (тикер и вес эмитента)
-const imoexIndex = reactive([]);
-const getImoexIndex = async () => {
+const IMOEXIndex = [];
+const getIMOEXIndex = async () => {
   try {
     await axios.get('https://iss.moex.com/iss/statistics/engines/stock/markets/index/analytics/IMOEX.json?limit=100')
       .then(response => {
         const data = response.data.analytics.data;
-        data.forEach((el) => imoexIndex.push({
+        data.forEach((el) => IMOEXIndex.push({
           ticker: el[2],
           weight: el[5]
         }));
@@ -38,15 +38,15 @@ const getImoexIndex = async () => {
   }
 };
 
-// Получаем данные эмитента (тикер, название и стоимость)
-const emitentsData = reactive([]);
+// Получаем данные эмитентов (тикер, название и стоимость)
+const sharesData = [];
 const getSharesData = async () => {
   try {
     await axios.get('https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json')
       .then(response => {
         // Тут пока дата закрытия. Можно переделать на текущую.
         const data = response.data.securities.data;
-        data.forEach((el, idx) => emitentsData.push(
+        data.forEach((el, idx) => sharesData.push(
           {
             ticker: el[0],
             name: el[9],
@@ -59,27 +59,28 @@ const getSharesData = async () => {
   }
 };
 
-// Определаем структуру props для передачи в конмонент таблицы
-const rowsData = reactive([]);
-const writeRowsData = () => {
-  return imoexIndex.map((el, idx, arr) => {
-    const emitent = emitentsData.find(item => item.ticker === el.ticker);
-    rowsData.push({
+// Определаем структуру данных для таблицы
+const IMOEXData = [];
+const setIMOEXData = () => {
+  return IMOEXIndex.map((el, idx, arr) => {
+    const share = sharesData.find(item => item.ticker === el.ticker);
+    IMOEXData.push({
       index: idx,
       ticker: el.ticker,
       weight: el.weight,
-      name: emitent.name,
-      value: emitent.value
+      name: share.name,
+      value: share.value
     });
   });
 };
 
 onMounted(async () => {
     loading.value = true;
-    await getImoexIndex();
+    await getIMOEXIndex();
     await getSharesData();
-    writeRowsData();
-    store.loadLocalData(rowsData);
+    setIMOEXData();
+    store.setInitialData(IMOEXData);
+    await store.fetchIMOEXDatabase();
     loading.value = false;
   }
 );
