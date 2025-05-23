@@ -3,8 +3,7 @@ import {supabase} from "../boot/supabase.js";
 
 export const useIMOEXStore = defineStore('IMOEX', {
   state: () => ({
-    data: [
-      // {
+    data: [// {
       //   "index": 0,
       //   "ticker": "AFKS",
       //   "weight": 0.46,
@@ -13,20 +12,13 @@ export const useIMOEXStore = defineStore('IMOEX', {
       //   "coef":1.25,
       //    "boughtQuantity":7
       // }
-    ],
-    target: 1400000,
-    current: 0,
+    ], target: "1400000", current: 0,
   }),
 
   getters: {
-    // getPlanQuantity: (state) => (ticker) => {
-    //   const idx = state.localData.find(i => i.ticker === ticker).index;
-    //   if (state.databaseData.length > 0 && state.databaseData[idx]?.coef) {
-    //     return Math.round(state.target * state.localData[idx].weight / 100 * state.databaseData[idx].coef / state.localData[idx].value);
-    //   } else {
-    //     return 0;
-    //   }
-    // }
+    getTarget() {
+      return parseFloat(this.target.replaceAll(' ', ''));
+    },
   },
 
   actions: {
@@ -42,14 +34,14 @@ export const useIMOEXStore = defineStore('IMOEX', {
     async fetchIMOEXDatabase() {
       try {
         let {data, error} = await supabase.from('IMOEXTable').select('*');
-        this.updateData(data);
+        this.updateDataFromDB(data);
         if (error) throw error;
       } catch (error) {
         console.log('Ошибка при загрузке данных из базы данных IMOEX', error.message);
       }
     },
 
-    updateData(dbData) {
+    updateDataFromDB(dbData) {
       this.data.forEach((item, index) => {
         const el = dbData.find((el => el.ticker === item.ticker));
         if (el) {
@@ -60,6 +52,32 @@ export const useIMOEXStore = defineStore('IMOEX', {
           this.data[index].boughtQuantity = 1;
         }
       });
+    },
+
+    updateData(data) {
+      console.log(data);
+    },
+
+    setPlanQuantity(ticker) {
+      const idx = this.data.findIndex(i => i.ticker === ticker);
+      if (this.data[idx].coef) {
+        const qtty = Math.round(this.getTarget * this.data[idx].weight / 100 * this.data[idx].coef / this.data[idx].value);
+        this.data[idx].planQuantity = qtty;
+        return qtty;
+      } else {
+        return '-';
+      }
+    },
+
+    setPlanPrice(ticker) {
+      const idx = this.data.findIndex(i => i.ticker === ticker);
+      if (this.data[idx].planQuantity) {
+        const price = Math.round(this.data[idx].value * this.data[idx].planQuantity);
+        this.data[idx].planPrice = price;
+        return price;
+      } else {
+        return '-';
+      }
     }
   }
 });
