@@ -54,8 +54,8 @@
         <q-td key="name" :props="props">{{ props.row.name }}</q-td>
         <q-td key="weight" :props="props">{{ props.row.weight }}</q-td>
         <q-td key="coef" :props="props">{{ props.row.coef }}
-          <q-popup-edit v-model.number="props.row.coef" v-slot="scope">
-            <q-input v-model.number="scope.value" dense autofocus @keyup.enter="store.updateData(scope.value)"/>
+          <q-popup-edit v-model.number="props.row.coef" @save="onCoefUpdate(props.row.coef, props.row.ticker)" v-slot="scope">
+            <q-input v-model.number="scope.value" dense autofocus @keyup.enter="scope.set"/>
           </q-popup-edit>
         </q-td>
         <q-td key="value" :props="props">{{ props.row.value.toLocaleString() }}</q-td>
@@ -128,6 +128,11 @@ onUpdated(() => {
 //   tableData.forEach(i => data += i.planPrice);
 //   return Math.round(data);
 // });
+
+const onCoefUpdate = (value, ticker) => {
+  console.log('here');
+  console.log(value, ticker);
+};
 
 
 </script>
