@@ -63,7 +63,6 @@ export const useIMOEXStore = defineStore('IMOEX', {
         .insert([
           {ticker: payload.ticker, coef: payload.coef, boughtQuantity: payload.boughtQuantity},
         ])
-        .select();
     },
 
     async updateDBData(ticker, payload) {

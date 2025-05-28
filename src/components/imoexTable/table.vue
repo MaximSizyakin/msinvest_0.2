@@ -100,7 +100,7 @@
         <q-td>6</q-td>
         <q-td>7</q-td>
         <q-td>
-          <!--          {{ totalPlanPrice }}-->
+          {{ getTotalPlanPrice() }}
         </q-td>
         <q-td>9</q-td>
         <q-td>10</q-td>
@@ -141,14 +141,14 @@ const onCoefUpdate = (ticker, value) => {
   }
 };
 
-// let getTotalPlanPrice = () => {
-//   let sum = null;
-//   store.data.forEach(i => {
-//     console.log(i.planPrice);
-//     sum += i.planPrice;
-//   });
-//   return Math.round(sum);
-// };
+let getTotalPlanPrice = () => {
+  let sum = null;
+  store.data.forEach(i => {
+    console.log(i.planPrice);
+    sum += i.planPrice;
+  });
+  return Math.round(sum);
+};
 //
 // watch(() => store.data, () => {
 //   getTotalPlanPrice();
