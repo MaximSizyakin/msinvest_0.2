@@ -54,18 +54,31 @@
         <q-td key="name" :props="props">{{ props.row.name }}</q-td>
         <q-td key="weight" :props="props">{{ props.row.weight }}</q-td>
         <q-td key="coef" :props="props">{{ props.row.coef }}
-          <q-popup-edit v-model.number="props.row.coef" @save="onCoefUpdate(props.row.coef, props.row.ticker)" v-slot="scope">
-            <q-input v-model.number="scope.value" dense autofocus @keyup.enter="scope.set"/>
+          <q-popup-edit
+            v-model.number="props.row.coef"
+            v-slot="scope"
+            :validate="val => val !== '' && val >= 0">
+            <q-input
+              type="number"
+              v-model.number="scope.value"
+              @keyup.enter="scope.set"
+              @change="onCoefUpdate(props.row.ticker, scope.value)"
+              :rules="[
+                val => val !== '' || 'Не может быть пустым',
+                val => val >= 0 || 'Не может быть меньше 0',
+              ]"
+              dense autofocus
+            />
           </q-popup-edit>
         </q-td>
         <q-td key="value" :props="props">{{ props.row.value.toLocaleString() }}</q-td>
-        <q-td key="planQuantity" :props="props">{{ store.setPlanQuantity(props.row.ticker).toLocaleString() }}</q-td>
-        <q-td key="planPrice" :props="props">{{ store.setPlanPrice(props.row.ticker).toLocaleString() }}</q-td>
+        <q-td key="planQuantity" :props="props">{{ store.setPlanQuantity(props.row.ticker) }}</q-td>
+        <q-td key="planPrice" :props="props">{{ store.setPlanPrice(props.row.ticker) }}</q-td>
         <q-td key="myWeight" :props="props"></q-td>
         <q-td key="weightQuantity" :props="props"></q-td>
         <q-td key="weightPrice" :props="props"></q-td>
         <q-td key="boughtQuantity" :props="props">
-          <!--          {{ tableData[props.row.index].boughtQuantity }}-->
+          {{ props.row.boughtQuantity }}
         </q-td>
         <q-td key="boughtPrice" :props="props"></q-td>
         <q-td key="done" :props="props"></q-td>
@@ -105,7 +118,7 @@
 </template>
 <script setup>
 import columns from "./columns";
-import {computed, onMounted, onUpdated, reactive, ref, watch} from "vue";
+import {computed, onUpdated, watch} from "vue";
 import {useIMOEXStore} from "../../stores/imoex-store.js";
 import {supabase} from "../../boot/supabase.js";
 
@@ -122,18 +135,24 @@ onUpdated(() => {
   console.log('rendered');
 });
 
-
-// const totalPlanPrice = computed(() => {
-//   let data = null;
-//   tableData.forEach(i => data += i.planPrice);
-//   return Math.round(data);
-// });
-
-const onCoefUpdate = (value, ticker) => {
-  console.log('here');
-  console.log(value, ticker);
+const onCoefUpdate = (ticker, value) => {
+  if (value >= 0 && value !== '') {
+    store.updateDBData(ticker, {coef: value});
+  }
 };
 
+// let getTotalPlanPrice = () => {
+//   let sum = null;
+//   store.data.forEach(i => {
+//     console.log(i.planPrice);
+//     sum += i.planPrice;
+//   });
+//   return Math.round(sum);
+// };
+//
+// watch(() => store.data, () => {
+//   getTotalPlanPrice();
+// });
 
 </script>
 

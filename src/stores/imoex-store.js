@@ -1,5 +1,6 @@
 import {defineStore, acceptHMRUpdate} from 'pinia';
 import {supabase} from "../boot/supabase.js";
+import {computed} from "vue";
 
 export const useIMOEXStore = defineStore('IMOEX', {
   state: () => ({
@@ -34,14 +35,14 @@ export const useIMOEXStore = defineStore('IMOEX', {
     async fetchIMOEXDatabase() {
       try {
         let {data, error} = await supabase.from('IMOEXTable').select('*');
-        this.updateDataFromDB(data);
+        this.syncDataWithDB(data);
         if (error) throw error;
       } catch (error) {
         console.log('Ошибка при загрузке данных из базы данных IMOEX', error.message);
       }
     },
 
-    updateDataFromDB(dbData) {
+    syncDataWithDB(dbData) {
       this.data.forEach((item, index) => {
         const el = dbData.find((el => el.ticker === item.ticker));
         if (el) {
@@ -50,33 +51,57 @@ export const useIMOEXStore = defineStore('IMOEX', {
         } else {
           this.data[index].coef = 1;
           this.data[index].boughtQuantity = 1;
+          this.insertDBData(item);
         }
       });
     },
 
-    updateData(data) {
-      console.log(data);
+    async insertDBData(payload) {
+      console.log('payload', payload);
+      const {data, error} = await supabase
+        .from('IMOEXTable')
+        .insert([
+          {ticker: payload.ticker, coef: payload.coef, boughtQuantity: payload.boughtQuantity},
+        ])
+        .select();
+    },
+
+    async updateDBData(ticker, payload) {
+      try {
+        const {data, error} = await supabase
+          .from('IMOEXTable')
+          .update(payload)
+          .eq('ticker', ticker)
+          .select();
+        if (error) throw error;
+      } catch (error) {
+        console.log('Ошибка при обновлении базы данных IMOEX', error.message);
+      }
+    },
+
+    getIndexByTicker(ticker) {
+      return this.data.findIndex(i => i.ticker === ticker);
     },
 
     setPlanQuantity(ticker) {
-      const idx = this.data.findIndex(i => i.ticker === ticker);
+      const idx = this.getIndexByTicker(ticker);
       if (this.data[idx].coef) {
         const qtty = Math.round(this.getTarget * this.data[idx].weight / 100 * this.data[idx].coef / this.data[idx].value);
         this.data[idx].planQuantity = qtty;
         return qtty;
       } else {
-        return '-';
+        return 0;
       }
     },
 
     setPlanPrice(ticker) {
-      const idx = this.data.findIndex(i => i.ticker === ticker);
+      const idx = this.getIndexByTicker(ticker);
       if (this.data[idx].planQuantity) {
         const price = Math.round(this.data[idx].value * this.data[idx].planQuantity);
         this.data[idx].planPrice = price;
         return price;
       } else {
-        return '-';
+        return 0;
       }
     }
   }
