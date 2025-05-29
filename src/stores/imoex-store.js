@@ -13,13 +13,22 @@ export const useIMOEXStore = defineStore('IMOEX', {
       //   "coef":1.25,
       //    "boughtQuantity":7
       // }
-    ], target: "1400000", current: 0,
+    ],
+    target: "1400000", current: 0,
   }),
 
   getters: {
     getTarget() {
       return parseFloat(this.target.replaceAll(' ', ''));
     },
+
+    getTotalPlanPrice() {
+      let sum = null;
+      this.data.forEach(i => {
+        if (i.planPrice) sum += i.planPrice;
+      });
+      return Math.round(sum);
+    }
   },
 
   actions: {
@@ -62,7 +71,7 @@ export const useIMOEXStore = defineStore('IMOEX', {
         .from('IMOEXTable')
         .insert([
           {ticker: payload.ticker, coef: payload.coef, boughtQuantity: payload.boughtQuantity},
-        ])
+        ]);
     },
 
     async updateDBData(ticker, payload) {
@@ -82,27 +91,10 @@ export const useIMOEXStore = defineStore('IMOEX', {
       return this.data.findIndex(i => i.ticker === ticker);
     },
 
-    setPlanQuantity(ticker) {
+    setData(ticker, payload) {
       const idx = this.getIndexByTicker(ticker);
-      if (this.data[idx].coef) {
-        const qtty = Math.round(this.getTarget * this.data[idx].weight / 100 * this.data[idx].coef / this.data[idx].value);
-        this.data[idx].planQuantity = qtty;
-        return qtty;
-      } else {
-        return 0;
-      }
+      Object.assign(this.data[idx], payload);
     },
-
-    setPlanPrice(ticker) {
-      const idx = this.getIndexByTicker(ticker);
-      if (this.data[idx].planQuantity) {
-        const price = Math.round(this.data[idx].value * this.data[idx].planQuantity);
-        this.data[idx].planPrice = price;
-        return price;
-      } else {
-        return 0;
-      }
-    }
   }
 });
 

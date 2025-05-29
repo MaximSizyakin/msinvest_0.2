@@ -13,7 +13,7 @@ const columns = [
   {name: 'value', label: 'Цена', field: 'value'}, // должна обновляться, какой интервал?
   {name: 'planQuantity', label: 'Купить акций план', field: 'planQuantity'}, // computed
   {name: 'planPrice', label: 'Стоимость плановая', field: 'planPrice'}, // computed
-  {name: 'myWeight', align: 'center', label: 'Мой вес', field: 'myWeight'},
+  {name: 'myWeight', align: 'right', label: 'Мой вес', field: 'myWeight'},
   {name: 'weightQuantity', align: 'center', label: 'Купить акций вес', field: 'weightQuantity'},
   {name: 'weightPrice', label: 'Стоимость весовая', field: 'weightPrice'},
   {name: 'boughtQuantity', label: 'Куплено акций', field: 'boughtQuantity'}, // ручной ввод

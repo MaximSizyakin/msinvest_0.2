@@ -72,9 +72,9 @@
           </q-popup-edit>
         </q-td>
         <q-td key="value" :props="props">{{ props.row.value.toLocaleString() }}</q-td>
-        <q-td key="planQuantity" :props="props">{{ store.setPlanQuantity(props.row.ticker) }}</q-td>
-        <q-td key="planPrice" :props="props">{{ store.setPlanPrice(props.row.ticker) }}</q-td>
-        <q-td key="myWeight" :props="props"></q-td>
+        <q-td key="planQuantity" :props="props">{{ planQuantity(props.row) }}</q-td>
+        <q-td key="planPrice" :props="props">{{ planPrice(props.row) }}</q-td>
+        <q-td key="myWeight" :props="props">{{ myWeight(props.row) }}</q-td>
         <q-td key="weightQuantity" :props="props"></q-td>
         <q-td key="weightPrice" :props="props"></q-td>
         <q-td key="boughtQuantity" :props="props">
@@ -100,7 +100,7 @@
         <q-td>6</q-td>
         <q-td>7</q-td>
         <q-td>
-          {{ getTotalPlanPrice() }}
+          {{ totalPlanPrice()?.toLocaleString() }}
         </q-td>
         <q-td>9</q-td>
         <q-td>10</q-td>
@@ -118,9 +118,7 @@
 </template>
 <script setup>
 import columns from "./columns";
-import {computed, onUpdated, watch} from "vue";
 import {useIMOEXStore} from "../../stores/imoex-store.js";
-import {supabase} from "../../boot/supabase.js";
 
 const store = useIMOEXStore();
 
@@ -131,9 +129,9 @@ const {loading} = defineProps({
   }
 });
 
-onUpdated(() => {
-  console.log('rendered');
-});
+let totalPlanPrice = () => {
+  if (store.data.length > 0 && !loading) return store.getTotalPlanPrice;
+};
 
 const onCoefUpdate = (ticker, value) => {
   if (value >= 0 && value !== '') {
@@ -141,18 +139,30 @@ const onCoefUpdate = (ticker, value) => {
   }
 };
 
-let getTotalPlanPrice = () => {
-  let sum = null;
-  store.data.forEach(i => {
-    console.log(i.planPrice);
-    sum += i.planPrice;
-  });
-  return Math.round(sum);
+const planQuantity = (row) => {
+  if (row.coef && !loading) {
+    const val = Math.round(store.getTarget * row.weight / 100 * row.coef / row.value);
+    store.setData(row.ticker, {'planQuantity': val});
+    return val.toLocaleString();
+  }
 };
-//
-// watch(() => store.data, () => {
-//   getTotalPlanPrice();
-// });
+
+const planPrice = (row) => {
+  if (row.planQuantity && !loading) {
+    const val = Math.round(row.value * row.planQuantity);
+    store.setData(row.ticker, {'planPrice': val});
+    return val.toLocaleString();
+  }
+};
+
+const myWeight = (row) => {
+  if (row.planPrice && !loading) {
+    const val = (row.planPrice / totalPlanPrice() * 100).toFixed(2);
+    store.setData(row.ticker, {'myWeight': val});
+    console.log('here');
+    return val;
+  }
+};
 
 </script>
 
