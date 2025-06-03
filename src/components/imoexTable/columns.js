@@ -13,14 +13,14 @@ const columns = [
   {name: 'value', label: 'Цена', field: 'value'}, // должна обновляться, какой интервал?
   {name: 'planQuantity', label: 'Купить акций план', field: 'planQuantity'}, // computed
   {name: 'planPrice', label: 'Стоимость плановая', field: 'planPrice'}, // computed
-  {name: 'myWeight', align: 'right', label: 'Мой вес', field: 'myWeight'},
-  {name: 'weightQuantity', align: 'center', label: 'Купить акций вес', field: 'weightQuantity'},
+  {name: 'myWeight', label: 'Мой вес', field: 'myWeight'},
+  {name: 'weightQuantity', label: 'Купить акций вес', field: 'weightQuantity'},
   {name: 'weightPrice', label: 'Стоимость весовая', field: 'weightPrice'},
   {name: 'boughtQuantity', label: 'Куплено акций', field: 'boughtQuantity'}, // ручной ввод
-  {name: 'boughtPrice', align: 'center', label: 'Стоимость позиции', field: 'boughtPrice'}, // computed
-  {name: 'done', align: 'center', label: 'Готовность', field: 'done'},
-  {name: 'buy', align: 'center', label: 'Докупить', field: 'buy'},
-  {name: 'sell', align: 'center', label: 'Продать', field: 'sell'},
+  {name: 'boughtPrice', label: 'Стоимость позиции', field: 'boughtPrice'}, // computed
+  {name: 'done', label: 'Готовность', field: 'done'},
+  {name: 'buy', label: 'Докупить', field: 'buy'},
+  {name: 'sell', label: 'Продать', field: 'sell'},
   {name: 'comment', align: 'center', label: 'Комментарий', field: 'comment'},
 ];
 

@@ -14,7 +14,8 @@ export const useIMOEXStore = defineStore('IMOEX', {
       //    "boughtQuantity":7
       // }
     ],
-    target: "1400000", current: 0,
+    target: "1400000",
+    current: 0,
   }),
 
   getters: {

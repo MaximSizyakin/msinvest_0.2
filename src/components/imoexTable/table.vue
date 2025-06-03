@@ -52,7 +52,7 @@
         <q-td key="count" :props="props">{{ props.row.index + 1 }}</q-td>
         <q-td key="ticker" :props="props">{{ props.row.ticker }}</q-td>
         <q-td key="name" :props="props">{{ props.row.name }}</q-td>
-        <q-td key="weight" :props="props">{{ props.row.weight }}</q-td>
+        <q-td key="weight" :props="props">{{ props.row.weight }}%</q-td>
         <q-td key="coef" :props="props">{{ props.row.coef }}
           <q-popup-edit
             v-model.number="props.row.coef"
@@ -74,16 +74,16 @@
         <q-td key="value" :props="props">{{ props.row.value.toLocaleString() }}</q-td>
         <q-td key="planQuantity" :props="props">{{ planQuantity(props.row) }}</q-td>
         <q-td key="planPrice" :props="props">{{ planPrice(props.row) }}</q-td>
-        <q-td key="myWeight" :props="props">{{ myWeight(props.row) }}</q-td>
-        <q-td key="weightQuantity" :props="props"></q-td>
-        <q-td key="weightPrice" :props="props"></q-td>
+        <q-td key="myWeight" :props="props">{{ myWeight(props.row) }}%</q-td>
+        <q-td key="weightQuantity" :props="props">{{ weightQuantity(props.row) }}</q-td>
+        <q-td key="weightPrice" :props="props">{{ weightPrice(props.row) }}</q-td>
         <q-td key="boughtQuantity" :props="props">
           {{ props.row.boughtQuantity }}
         </q-td>
-        <q-td key="boughtPrice" :props="props"></q-td>
-        <q-td key="done" :props="props"></q-td>
-        <q-td key="buy" :props="props"></q-td>
-        <q-td key="sell" :props="props"></q-td>
+        <q-td key="boughtPrice" :props="props">{{ boughtPrice(props.row) }}</q-td>
+        <q-td key="done" :props="props">{{ done(props.row) }}</q-td>
+        <q-td key="buy" :props="props">{{ buy(props.row) }}</q-td>
+        <q-td key="sell" :props="props">{{ sell(props.row) }}</q-td>
         <q-td key="comment" :props="props"></q-td>
       </q-tr>
     </template>
@@ -99,9 +99,7 @@
         <q-td>5</q-td>
         <q-td>6</q-td>
         <q-td>7</q-td>
-        <q-td>
-          {{ totalPlanPrice()?.toLocaleString() }}
-        </q-td>
+        <q-td>8</q-td>
         <q-td>9</q-td>
         <q-td>10</q-td>
         <q-td>11</q-td>
@@ -140,7 +138,7 @@ const onCoefUpdate = (ticker, value) => {
 };
 
 const planQuantity = (row) => {
-  if (row.coef && !loading) {
+  if (row.coef && row.value && !loading) {
     const val = Math.round(store.getTarget * row.weight / 100 * row.coef / row.value);
     store.setData(row.ticker, {'planQuantity': val});
     return val.toLocaleString();
@@ -157,10 +155,60 @@ const planPrice = (row) => {
 
 const myWeight = (row) => {
   if (row.planPrice && !loading) {
+    // двойной рендеринг из-за расчета totalPlanPrice
     const val = (row.planPrice / totalPlanPrice() * 100).toFixed(2);
     store.setData(row.ticker, {'myWeight': val});
+    // остановился здесь
     console.log('here');
     return val;
+  }
+};
+
+const weightQuantity = (row) => {
+  if (row.myWeight && !loading) {
+    const val = Math.round(store.getTarget * row.myWeight / row.value / 100);
+    store.setData(row.ticker, {'weightQuantity': val});
+
+    return val.toLocaleString();
+  }
+};
+
+const weightPrice = (row) => {
+  if (row.weightQuantity && !loading) {
+    const val = Math.round(row.value * row.weightQuantity);
+    store.setData(row.ticker, {'weightPrice': val});
+    return val.toLocaleString();
+  }
+};
+
+const boughtPrice = (row) => {
+  if (row.boughtQuantity && !loading) {
+    const val = Math.round(row.value * row.boughtQuantity);
+    store.setData(row.ticker, {'boughtPrice': val});
+    return val.toLocaleString();
+  }
+};
+
+const done = (row) => {
+  if (row.boughtQuantity && !loading) {
+    const val = (row.boughtQuantity / row.weightQuantity);
+    store.setData(row.ticker, {'done': val});
+
+    return val.toLocaleString();
+  }
+};
+
+const buy = (row) => {
+  if (row.boughtPrice && !loading) {
+    const val = row.weightPrice - row.boughtPrice;
+    return val < 0 ? 0 : val.toLocaleString();
+  }
+};
+
+const sell = (row) => {
+  if (row.boughtPrice && !loading) {
+    const val = row.weightPrice - row.boughtPrice;
+    return val < 0 ? val.toLocaleString() : 0;
   }
 };
 
