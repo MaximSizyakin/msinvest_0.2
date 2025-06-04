@@ -23,13 +23,21 @@ export const useIMOEXStore = defineStore('IMOEX', {
       return parseFloat(this.target.replaceAll(' ', ''));
     },
 
+    getTotalWeight() {
+      let sum = null;
+      this.data.forEach(i => {
+        if (i.weight) sum += i.weight;
+      });
+      return Math.round(sum * 100) / 100;
+    },
+
     getTotalPlanPrice() {
       let sum = null;
       this.data.forEach(i => {
         if (i.planPrice) sum += i.planPrice;
       });
       return Math.round(sum);
-    }
+    },
   },
 
   actions: {

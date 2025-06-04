@@ -81,7 +81,7 @@
           {{ props.row.boughtQuantity }}
         </q-td>
         <q-td key="boughtPrice" :props="props">{{ boughtPrice(props.row) }}</q-td>
-        <q-td key="done" :props="props">{{ done(props.row) }}</q-td>
+        <q-td key="done" :props="props">{{ done(props.row) }}%</q-td>
         <q-td key="buy" :props="props">{{ buy(props.row) }}</q-td>
         <q-td key="sell" :props="props">{{ sell(props.row) }}</q-td>
         <q-td key="comment" :props="props"></q-td>
@@ -90,25 +90,23 @@
 
     <template v-slot:bottom-row="props">
       <q-tr style="text-align: center">
-        <q-td>1</q-td>
-        <q-td>2</q-td>
-        <q-td>3</q-td>
-        <q-td>
-          <!--          {{ totalWeight }}-->
-        </q-td>
-        <q-td>5</q-td>
-        <q-td>6</q-td>
-        <q-td>7</q-td>
-        <q-td>8</q-td>
-        <q-td>9</q-td>
-        <q-td>10</q-td>
-        <q-td>11</q-td>
-        <q-td>12</q-td>
-        <q-td>13</q-td>
-        <q-td>14</q-td>
-        <q-td>15</q-td>
-        <q-td>16</q-td>
-        <q-td>17</q-td>
+        <q-td></q-td>
+        <q-td></q-td>
+        <q-td></q-td>
+        <q-td>{{ totalWeight }}</q-td>
+        <q-td></q-td>
+        <q-td></q-td>
+        <q-td></q-td>
+        <q-td></q-td>
+        <q-td>{{ totalMyWeight.toFixed(2) }}</q-td>
+        <q-td></q-td>
+        <q-td></q-td>
+        <q-td></q-td>
+        <q-td></q-td>
+        <q-td></q-td>
+        <q-td></q-td>
+        <q-td></q-td>
+        <q-td></q-td>
       </q-tr>
     </template>
 
@@ -117,6 +115,7 @@
 <script setup>
 import columns from "./columns";
 import {useIMOEXStore} from "../../stores/imoex-store.js";
+import {ref, computed, onUpdated} from "vue";
 
 const store = useIMOEXStore();
 
@@ -127,9 +126,23 @@ const {loading} = defineProps({
   }
 });
 
-let totalPlanPrice = () => {
-  if (store.data.length > 0 && !loading) return store.getTotalPlanPrice;
+
+const totalWeight = computed(() => {
+  if (store.data.length > 0 && !loading) {
+    return store.getTotalWeight;
+  }
+});
+
+let totalMyWeight = ref(0);
+let getTotalMyWeight = () => {
+  store.data.forEach(i => {
+    if (i.myWeight) totalMyWeight.value += i.myWeight;
+  });
 };
+
+onUpdated(() => {
+  getTotalMyWeight();
+});
 
 const onCoefUpdate = (ticker, value) => {
   if (value >= 0 && value !== '') {
@@ -138,7 +151,7 @@ const onCoefUpdate = (ticker, value) => {
 };
 
 const planQuantity = (row) => {
-  if (row.coef && row.value && !loading) {
+  if (row.coef >= 0 && row.value && !loading) {
     const val = Math.round(store.getTarget * row.weight / 100 * row.coef / row.value);
     store.setData(row.ticker, {'planQuantity': val});
     return val.toLocaleString();
@@ -146,7 +159,7 @@ const planQuantity = (row) => {
 };
 
 const planPrice = (row) => {
-  if (row.planQuantity && !loading) {
+  if (row.planQuantity >= 0 && !loading) {
     const val = Math.round(row.value * row.planQuantity);
     store.setData(row.ticker, {'planPrice': val});
     return val.toLocaleString();
@@ -154,27 +167,25 @@ const planPrice = (row) => {
 };
 
 const myWeight = (row) => {
-  if (row.planPrice && !loading) {
+  if (row.planPrice >= 0 && !loading) {
     // двойной рендеринг из-за расчета totalPlanPrice
-    const val = (row.planPrice / totalPlanPrice() * 100).toFixed(2);
+    const val = Number((row.planPrice / store.getTotalPlanPrice * 100).toFixed(2));
     store.setData(row.ticker, {'myWeight': val});
-    // остановился здесь
-    console.log('here');
     return val;
   }
 };
 
 const weightQuantity = (row) => {
-  if (row.myWeight && !loading) {
+  if (row.myWeight >= 0 && !loading) {
     const val = Math.round(store.getTarget * row.myWeight / row.value / 100);
     store.setData(row.ticker, {'weightQuantity': val});
-
+    console.log('here');
     return val.toLocaleString();
   }
 };
 
 const weightPrice = (row) => {
-  if (row.weightQuantity && !loading) {
+  if (row.weightQuantity >= 0 && !loading) {
     const val = Math.round(row.value * row.weightQuantity);
     store.setData(row.ticker, {'weightPrice': val});
     return val.toLocaleString();
@@ -186,15 +197,18 @@ const boughtPrice = (row) => {
     const val = Math.round(row.value * row.boughtQuantity);
     store.setData(row.ticker, {'boughtPrice': val});
     return val.toLocaleString();
+  } else {
+    return '-';
   }
 };
 
 const done = (row) => {
   if (row.boughtQuantity && !loading) {
-    const val = (row.boughtQuantity / row.weightQuantity);
+    const val = Number((row.boughtQuantity / (row.weightQuantity + 0.00000001) * 100).toFixed(2));
     store.setData(row.ticker, {'done': val});
-
     return val.toLocaleString();
+  } else {
+    return 0;
   }
 };
 
@@ -202,6 +216,8 @@ const buy = (row) => {
   if (row.boughtPrice && !loading) {
     const val = row.weightPrice - row.boughtPrice;
     return val < 0 ? 0 : val.toLocaleString();
+  } else {
+    return '-';
   }
 };
 
@@ -209,6 +225,8 @@ const sell = (row) => {
   if (row.boughtPrice && !loading) {
     const val = row.weightPrice - row.boughtPrice;
     return val < 0 ? val.toLocaleString() : 0;
+  } else {
+    return '-';
   }
 };
 
